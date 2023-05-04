@@ -1,0 +1,80 @@
+const User = require("../model/userModel");
+const bcrypt = require("bcrypt");
+
+module.exports.register = async (req, res, next) => {
+  try {
+    const { username, email, password } = req.body;
+    const usernameCheck = await User.findOne({ username }); //checking if username is present in database
+    if (usernameCheck)
+      return res.json({ msg: "Username already used", status: false });
+    const emailCheck = await User.findOne({ email });
+    if (emailCheck)
+      return res.json({ msg: "Email already used", status: false });
+
+    const hashedPassword = await bcrypt.hash(password, 10); // if everything is fine, we will encrypt(hash) the password. '10' is the salt value which means the type of encryption
+    const user = await User.create({
+      email,
+      username,
+      password: hashedPassword,
+    });
+    delete user.password;
+    return res.json({ status: true, user });
+  } catch (ex) {
+    next(ex);
+  }
+};
+
+module.exports.login = async (req, res, next) => {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username }); //checking if username is present in database
+    if (!user)
+      return res.json({ msg: "Incorrect username or password", status: false });
+    const isPasswordValid = await bcrypt.compare(password, user.password); // well compare the pw sent from frontend with the pw in the database. This compare methid is given by bcrypt.
+    if (!isPasswordValid)
+      return res.json({ msg: "Incorrect username or password", status: false });
+    delete user.password;
+
+    return res.json({ status: true, user });
+  } catch (ex) {
+    next(ex);
+  }
+};
+
+module.exports.setAvatar = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const avatarImage = req.body.image;
+    const userData = await User.findByIdAndUpdate(
+      userId,
+      {
+        isAvatarImageSet: true,
+        avatarImage,
+      },
+      { new: true }
+    );
+    return res.json({
+      isSet: userData.isAvatarImageSet,
+      image: userData.avatarImage,
+    });
+  } catch (ex) {
+    next(ex);   //passing exception to next, express will automatically handle that
+  }
+};
+
+module.exports.getAllUsers = async (req, res, next) => {
+    try{
+      const users = await User.find({ _id: { $ne:req.params.id }}).select([   //getting all users info except the currently loginned's info
+        "email",
+        "username",
+        "avatarImage",
+        "_id",
+      ]);
+      return res.json(users);
+    }
+    catch(ex){
+      next(ex);
+    }
+}
+
+
