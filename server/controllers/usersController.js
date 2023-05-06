@@ -58,23 +58,31 @@ module.exports.setAvatar = async (req, res, next) => {
       image: userData.avatarImage,
     });
   } catch (ex) {
-    next(ex);   //passing exception to next, express will automatically handle that
+    next(ex); //passing exception to next, express will automatically handle that
   }
 };
 
 module.exports.getAllUsers = async (req, res, next) => {
-    try{
-      const users = await User.find({ _id: { $ne:req.params.id }}).select([   //getting all users info except the currently loginned's info
-        "email",
-        "username",
-        "avatarImage",
-        "_id",
-      ]);
-      return res.json(users);
-    }
-    catch(ex){
-      next(ex);
-    }
-}
+  try {
+    const users = await User.find({ _id: { $ne: req.params.id } }).select([
+      //getting all users info except the currently loginned's info
+      "email",
+      "username",
+      "avatarImage",
+      "_id",
+    ]);
+    return res.json(users);
+  } catch (ex) {
+    next(ex);
+  }
+};
 
-
+module.exports.logOut = (req, res, next) => {
+  try {
+    if (!req.params.id) return res.json({ msg: "User id is required" });
+    onlineUsers.delete(req.params.id);
+    return res.status(200).send();
+  } catch (ex) {
+    next(ex);
+  }
+};

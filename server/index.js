@@ -6,13 +6,10 @@ const messageRoute = require("./routes/messagesRoute");
 
 const app = express();
 const socket = require("socket.io");
-require("dotenv").config();
+const dotenv = require("dotenv");
+dotenv.config({ path: "./.env" });
 
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-  })
-);
+app.use(cors());  //{ origin: "https://chat-r-benju2205.netlify.app" }
 app.use(express.json());
 app.use("/api/auth", userRoutes);
 app.use("/api/messages", messageRoute);
@@ -30,18 +27,19 @@ mongoose
   });
 
 const server = app.listen(process.env.PORT, () => {
+  // start the server
   console.log(`Server Started on Port ${process.env.PORT}`);
 });
 
+
 const io = socket(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: process.env.ORIGIN,
     credentials: true,
   },
 });
 
 global.onlineUsers = new Map();
-
 io.on("connection", (socket) => {
   global.chatSocket = socket;
   socket.on("add-user", (userId) => {
