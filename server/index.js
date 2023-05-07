@@ -9,7 +9,8 @@ const socket = require("socket.io");
 const dotenv = require("dotenv");
 dotenv.config({ path: "./.env" });
 
-app.use(cors());  //{ origin: "https://chat-r-benju2205.netlify.app" }
+app.use(cors());  
+// app.use(cors({ origin: "https://chat-r-benju2205.netlify.app" }));  
 app.use(express.json());
 app.use("/api/auth", userRoutes);
 app.use("/api/messages", messageRoute);
